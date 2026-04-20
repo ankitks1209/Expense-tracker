@@ -1,23 +1,18 @@
-# 💸 ExpenseBot — AI-powered Expense Tracker
+ExpenseBot — AI-powered Expense Tracker
+Type expenses in plain English. AI extracts the details. Dashboard shows you the trends.
 
-> Type expenses in plain English. AI extracts the details. Dashboard shows you the trends.
+1) Features
 
----
+Natural language input** — "paid ₹800 for the dentist yesterday"
+AI extraction** — Groq (free) parses amount, category, date, and note automatically
+13 smart categories** — Food, Transport, Health, Shopping, and more
+Analytics dashboard** — daily trends, monthly bars, category donut, full table
+Dark mode** — clean monospace aesthetic, mobile-friendly
+Zero-infrastructure** — single SQLite file, no cloud database needed
 
-## ✨ Features
+ Quick Setup (5 minutes)
 
-- **Natural language input** — "paid ₹800 for the dentist yesterday"
-- **AI extraction** — Groq (free) parses amount, category, date, and note automatically
-- **13 smart categories** — Food, Transport, Health, Shopping, and more
-- **Analytics dashboard** — daily trends, monthly bars, category donut, full table
-- **Dark mode** — clean monospace aesthetic, mobile-friendly
-- **Zero-infrastructure** — single SQLite file, no cloud database needed
-
----
-
-## 🚀 Quick Setup (5 minutes)
-
-### Step 1 — Clone / download the project
+Step 1 — Clone / download the project
 
 ```bash
 # If you have git:
@@ -27,7 +22,7 @@ cd expense_tracker
 # Or just unzip the folder and cd into it
 ```
 
-### Step 2 — Create a virtual environment
+ Step 2 — Create a virtual environment
 
 ```bash
 # Mac / Linux
@@ -39,20 +34,20 @@ python -m venv venv
 venv\Scripts\activate
 ```
 
-### Step 3 — Install dependencies
+ Step 3 — Install dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### Step 4 — Get a FREE Groq API key
+Step 4 — Get a FREE Groq API key
 
 1. Go to **https://console.groq.com**
 2. Sign up (free, no credit card)
 3. Click **API Keys** → **Create API Key**
 4. Copy the key (starts with `gsk_...`)
 
-### Step 5 — Add your API key
+Step 5 — Add your API key
 
 Edit `.streamlit/secrets.toml`:
 
@@ -61,8 +56,7 @@ GROQ_API_KEY = "gsk_your_actual_key_here"
 ```
 
 > ⚠️ This file is in `.gitignore` — it will never be committed to git.
-
-### Step 6 — (Optional) Add demo data
+ Step 6 — (Optional) Add demo data
 
 ```bash
 python seed_data.py
@@ -78,9 +72,7 @@ streamlit run app.py
 
 Open your browser at **http://localhost:8501** 🎉
 
----
-
-## 📁 Project Structure
+*📁 Project Structure
 
 ```
 expense_tracker/
@@ -100,11 +92,9 @@ expense_tracker/
     └── secrets.toml          ← Your API keys (⚠️ never commit)
 ```
 
----
+💬 How to Use
 
-## 💬 How to Use
-
-### Chat Interface (app.py)
+Chat Interface (app.py)
 
 Type anything describing an expense:
 
@@ -116,7 +106,7 @@ Type anything describing an expense:
 | `netflix subscription 499` | ₹499 · Subscriptions · today · Netflix subscription |
 | `coffee 120 rs` | ₹120 · Food & Dining · today · coffee |
 
-### Dashboard
+*Dashboard
 
 Click **📊 Open Dashboard →** to see:
 - **KPI cards** — total spent, transaction count, average, top category
@@ -125,9 +115,7 @@ Click **📊 Open Dashboard →** to see:
 - **Monthly bars** — month-by-month comparison
 - **Full table** — search, filter, and delete entries
 
----
-
-## 🌐 Deploying for Free (Streamlit Cloud)
+🌐 Deploying for Free (Streamlit Cloud)
 
 1. Push your project to a **GitHub repo** (make sure `secrets.toml` is in `.gitignore`)
 2. Go to **https://share.streamlit.io**
@@ -142,9 +130,7 @@ Click **📊 Open Dashboard →** to see:
 > Note: Streamlit Cloud uses ephemeral storage — `expenses.db` resets on redeploy.  
 > For persistent cloud storage, swap SQLite for **Supabase** (free tier) — ask ExpenseBot to help you migrate!
 
----
-
-## 🔧 Deploying on Render (Persistent DB)
+ 🔧 Deploying on Render (Persistent DB)
 
 1. Create a **Render** account at render.com
 2. New → **Web Service** → connect your repo
@@ -154,9 +140,7 @@ Click **📊 Open Dashboard →** to see:
 4. Add environment variable: `GROQ_API_KEY = gsk_...`
 5. The `expenses.db` file persists on Render's disk (add a persistent disk in settings)
 
----
-
-## 🤖 Changing the AI Model
+🤖 Changing the AI Model
 
 In `ai_extractor.py`, change the model name:
 
@@ -169,9 +153,7 @@ model="llama-3.3-70b-versatile",   # Default — best accuracy
 
 All models are **free** on Groq's free tier.
 
----
-
-## 📦 Dependencies
+ 📦 Dependencies
 
 | Package | Purpose |
 |---|---|
@@ -181,8 +163,7 @@ All models are **free** on Groq's free tier.
 | `pandas` | Data manipulation for analytics |
 
 ---
-
-## ❓ Troubleshooting
+❓ Troubleshooting
 
 **"GROQ_API_KEY not set"**  
 → Make sure `.streamlit/secrets.toml` exists with your key, or set env var: `export GROQ_API_KEY=gsk_...`
