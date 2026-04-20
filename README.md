@@ -70,7 +70,7 @@ This adds ~40 sample expenses so you can immediately see the dashboard charts.
 streamlit run app.py
 ```
 
-Open your browser at **http://localhost:8501** 🎉
+Open your browser at **http://localhost:8501** 
 
 *📁 Project Structure
 
