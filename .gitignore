@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Streamlit secrets
+.streamlit/secrets.toml
+.streamlit/secrets.tom
+
+# Local database and backups
+expenses.db
+*.db
+
+# OS/editor files
+.DS_Store
+.vscode/
