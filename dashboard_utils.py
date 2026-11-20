@@ -11,7 +11,8 @@ import pandas as pd
 def prepare_export_frame(df: pd.DataFrame) -> pd.DataFrame:
     """Return a normalized export frame with formatted dates."""
     export_frame = df[["date", "transaction_type", "category", "amount", "note"]].copy()
-    export_frame["date"] = pd.to_datetime(export_frame["date"]).dt.strftime("%d %b %Y")
+    recorded_dates = df["recorded_date"] if "recorded_date" in df else export_frame["date"]
+    export_frame["date"] = pd.to_datetime(export_frame["date"], errors="coerce").dt.strftime("%d %b %Y").fillna(recorded_dates)
     return export_frame
 
 
@@ -33,8 +34,8 @@ def calculate_period_comparison(df: pd.DataFrame, today: Optional[date] = None) 
     this_income, this_expense = _totals(current)
     last_income, last_expense = _totals(previous)
 
-    income_change = ((this_income - last_income) / max(last_income, 1)) * 100
-    expense_change = ((this_expense - last_expense) / max(last_expense, 1)) * 100
+    income_change = ((this_income - last_income) / last_income) * 100 if last_income else 0
+    expense_change = ((this_expense - last_expense) / last_expense) * 100 if last_expense else 0
 
     return {
         "this_month": {
@@ -59,7 +60,9 @@ def budget_progress(spent: float, budget: float) -> dict:
     spent_value = float(spent or 0)
     pct = (spent_value / max(budget_value, 1)) * 100
 
-    if pct >= 100:
+    if spent_value == budget_value and budget_value > 0:
+        return {"percent": 100.0, "status": "✓ Limit reached", "bar_color": "#d97706"}
+    if pct > 100:
         return {
             "percent": round(pct, 2),
             "status": "❌ Over budget",
