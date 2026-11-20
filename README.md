@@ -18,7 +18,7 @@ Record income, expenses and repayments in English, Hindi or Hinglish. Enma asks 
 
 ---
 
-## 🚀 Quick Setup (5 minutes)
+## Quick Setup (5 minutes)
 
 ### Step 1 — Clone / download the project
 
@@ -61,7 +61,7 @@ Add the key to `.streamlit/secrets.toml` to use the optional model-assisted mode
 GROQ_API_KEY = "gsk_your_actual_key_here"
 ```
 
-> ⚠️ This file is in `.gitignore` — it will never be committed to git.
+> This file is in `.gitignore` — it will never be committed to git.
 
 ### Step 5 — Run the app
 
@@ -112,7 +112,7 @@ To teach a category, type or say “When I say ‘flat ka rent’, put it under 
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 expense_tracker/
@@ -129,11 +129,11 @@ expense_tracker/
 │
 └── .streamlit/
     ├── config.toml           ← Dark theme settings
-    └── secrets.toml          ← Your API keys (⚠️ never commit)
+    └── secrets.toml          ← Your API keys (never commit)
 ```
 
 
-## 💬 How to Use
+## How to Use
 
 ### Chat
 
@@ -154,7 +154,7 @@ If you enter `paid 500 for dinner, split with Rahul`, Enma asks what you persona
 
 ### Dashboard
 
-Click **📊 Open Dashboard →** to see:
+Click **Dashboard** to see:
 - **KPI cards** — total spent, transaction count, average, top category
 - **Daily trend line** — spending pattern over time
 - **Category donut** — where your money goes
@@ -171,7 +171,7 @@ Click **📊 Open Dashboard →** to see:
    ```
    GROQ_API_KEY = "gsk_your_key_here"
    ```
-6. Click **Deploy** ✓
+6. Click **Deploy**
 
 For a public demonstration, start with `ENMA_DEMO_MODE=1 streamlit run app.py`. Each browser session gets a temporary ledger; reloading can start a fresh one. The personal database is never opened in demo mode. Monthly budgets persist alongside the transactions in the selected ledger. Reset recovery lasts only for the current session.
 
@@ -196,7 +196,7 @@ In personal mode the app uses one ledger per deployment. For a private personal 
 
 The optional chat model is configured in `understanding.py`. The benchmark accepts `--model MODEL_ID` for models supporting its structured response schema.
 
-## 📦 Dependencies
+## Dependencies
 
 | Package | Purpose |
 |---|---|
