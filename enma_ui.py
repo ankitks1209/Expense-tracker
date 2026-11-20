@@ -38,19 +38,25 @@ def apply_theme():
 
 def page_header(*, page="chat"):
     with st.container(key="enma_header"):
-        brand, nav, theme, reset = st.columns([4, 2, 2, 2], vertical_alignment="center")
+        if page == "home":
+            brand, theme = st.columns([4, 1], vertical_alignment="center")
+        else:
+            brand, nav, theme, reset = st.columns([4, 2, 2, 2], vertical_alignment="center")
         with brand:
             if page == "home":
-                st.html(f'<div class="enma-brand">{WORDMARK}</div>')
+                st.html(f"""<div class="landing-brand">{WORDMARK}
+                    <span class="landing-full-name">Expense Navigation and Management Assistant</span>
+                </div>""")
             else:
                 st.html(f'<a class="enma-brand" href="./" aria-label="Enma home">{WORDMARK}</a>')
-        with nav:
-            if page == "dashboard":
-                if st.button("Chat", key="back", icon=":material/chat_bubble:", width="stretch"):
-                    st.switch_page("chat.py")
-            elif page == "chat":
-                if st.button("Dashboard", key="dash", icon=":material/monitoring:", width="stretch"):
-                    st.switch_page("dashboard.py")
+        if page != "home":
+            with nav:
+                if page == "dashboard":
+                    if st.button("Chat", key="back", icon=":material/chat_bubble:", width="stretch"):
+                        st.switch_page("chat.py")
+                elif page == "chat":
+                    if st.button("Dashboard", key="dash", icon=":material/monitoring:", width="stretch"):
+                        st.switch_page("dashboard.py")
         with theme:
             dark = st.session_state.theme == "dark"
             if st.button(
@@ -61,8 +67,8 @@ def page_header(*, page="chat"):
             ):
                 st.session_state.theme = "light" if dark else "dark"
                 st.rerun()
-        with reset:
-            if page != "home" and st.button("Reset all", key="reset_all_transactions", icon=":material/restart_alt:", width="stretch"):
+        if page != "home":
+            if reset.button("Reset all", key="reset_all_transactions", icon=":material/restart_alt:", width="stretch"):
                 st.session_state.confirm_reset_all = True
     if page != "home":
         render_reset_confirmation()

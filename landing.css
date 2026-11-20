@@ -1,3 +1,15 @@
+.landing-brand {
+    display: grid;
+    gap: 5px;
+}
+
+.landing-full-name {
+    color: var(--enma-secondary);
+    font-size: 14px;
+    line-height: 1.4;
+    text-wrap: balance;
+}
+
 .st-key-landing_hero {
     padding-block: clamp(24px, 5vw, 68px);
 }
