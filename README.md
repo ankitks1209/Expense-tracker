@@ -4,9 +4,14 @@ Record income, expenses and repayments in English, Hindi or Hinglish. Enma asks 
 
 [Project evaluation and architecture](submission/REPORT.md) · [Mobile demonstration](submission/mobile-demo.gif)
 
----
+Natural language input** — "paid ₹800 for the dentist yesterday"
+AI extraction** — Groq (free) parses amount, category, date, and note automatically
+13 smart categories** — Food, Transport, Health, Shopping, and more
+Analytics dashboard** — daily trends, monthly bars, category donut, full table
+Dark mode** — clean monospace aesthetic, mobile-friendly
+Zero-infrastructure** — single SQLite file, no cloud database needed
 
-## ✨ Features
+ Quick Setup (5 minutes)
 
 - **Natural language input** — "paid ₹800 for the dentist yesterday"
 - **Transaction extraction** — local parsing supports amounts such as ₹1,250.50 and 20k, separate dates for each transaction, and common Hinglish phrases
@@ -32,7 +37,7 @@ cd Expense-tracker
 # Or just unzip the folder and cd into it
 ```
 
-### Step 2 — Create a virtual environment
+ Step 2 — Create a virtual environment
 
 ```bash
 # Mac / Linux
@@ -44,7 +49,7 @@ python -m venv venv
 venv\Scripts\activate
 ```
 
-### Step 3 — Install dependencies
+ Step 3 — Install dependencies
 
 ```bash
 pip install -r requirements.txt
@@ -71,7 +76,7 @@ GROQ_API_KEY = "gsk_your_actual_key_here"
 streamlit run app.py
 ```
 
-Open your browser at **http://localhost:8501** 🎉
+Open your browser at **http://localhost:8501** 
 
 ### Optional microphone setup
 
@@ -134,7 +139,7 @@ expense_tracker/
     └── secrets.toml          ← Your API keys (⚠️ never commit)
 ```
 
----
+💬 How to Use
 
 ## 💬 How to Use
 
@@ -155,7 +160,7 @@ Describe a completed expense or income in chat.
 
 If you enter `paid 500 for dinner, split with Rahul`, Enma asks what you personally paid. Reply with your amount, such as `250`. If an entry matches one saved in the last ten minutes, choose whether to save it again.
 
-### Dashboard
+*Dashboard
 
 Click **📊 Open Dashboard →** to see:
 - **KPI cards** — total spent, transaction count, average, top category
@@ -164,9 +169,7 @@ Click **📊 Open Dashboard →** to see:
 - **Monthly bars** — month-by-month comparison
 - **Full table** — search, filter, and delete entries
 
----
-
-## 🌐 Deploying for Free (Streamlit Cloud)
+🌐 Deploying for Free (Streamlit Cloud)
 
 1. Push your project to a **GitHub repo** (make sure `secrets.toml` is in `.gitignore`)
 2. Go to **https://share.streamlit.io**
@@ -185,9 +188,7 @@ In personal mode the app uses one ledger per deployment. For a private personal 
 > Note: Streamlit Cloud uses ephemeral storage — `expenses.db` resets on redeploy.  
 > For persistent cloud storage, swap SQLite for **Supabase** (free tier) — ask ExpenseBot to help you migrate!
 
----
-
-## 🔧 Deploying on Render (Persistent DB)
+ 🔧 Deploying on Render (Persistent DB)
 
 1. Create a **Render** account at render.com
 2. New → **Web Service** → connect your repo
@@ -215,8 +216,7 @@ The optional chat model is configured in `understanding.py`. The benchmark accep
 | `requests` | Gnani speech-to-text requests |
 
 ---
-
-## ❓ Troubleshooting
+❓ Troubleshooting
 
 **"GROQ_API_KEY not set"**  
 → Make sure `.streamlit/secrets.toml` exists with your key, or set env var: `export GROQ_API_KEY=gsk_...`
