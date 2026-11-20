@@ -1,0 +1,39 @@
+Local parser
+Correct first action: 10/10
+Exact ledger/reminders after at most one reply: 10/10
+Correct question type: 2/2
+Unnecessary follow-ups: 0 · Missed follow-ups: 0 · Wrong drafts offered: 0
+Missing entries: 0 · Unexpected entries: 0 · Elapsed: 0.0s
+Provider unavailable: 0 · Draft rejected: 0
+Groq model: openai/gpt-oss-20b
+Structured model before validation
+balance without punctuation: asked nothing (expected nothing); draft (('credit', 2800, '', 'Gift', '2026-11-20', 0), ('debit', 400, '', 'Food & Dining', '2026-11-20', 0), ('debit', 1600, '', 'Other', '2026-11-20', 0)) (expected (('credit', 2800, '', 'Other Income', '2026-11-20', 0), ('debit', 400, '', 'Food & Dining', '2026-11-20', 0), ('debit', 1600, '', 'Other', '2026-11-20', 0)))
+Devanagari mixed directions: asked nothing (expected nothing); draft (('credit', 4800, '', 'Other Income', '2026-11-20', 0), ('debit', 300, '', 'Transport', '2026-11-20', 0), ('debit', 1250, '', 'Utilities & Bills', '2026-11-20', 0)) (expected (('credit', 4800, '', 'Other Income', '2026-11-20', 0), ('debit', 300, '', 'Transport', '2026-11-20', 0), ('debit', 1250, '', 'Home & Maintenance', '2026-11-20', 0)))
+repayment without a bill: asked nothing (expected nothing); draft (('collect', 425, 'neha', '', '2026-11-20', 0),) (expected (('collect', 425, 'neha', '', '', 0),))
+several outstanding debts: asked nothing (expected nothing); draft (('pay', 250, 'rohan', '', '2026-11-20', 0), ('pay', 500, 'maya', '', '2026-11-20', 0)) (expected (('pay', 250, 'rohan', '', '', 0), ('pay', 500, 'maya', '', '', 0)))
+negation alongside a real expense: asked nothing (expected nothing); draft (('debit', 200, '', 'Food & Dining', '2026-11-20', 0), ('pay', 700, '', '', '2026-11-20', 0)) (expected (('debit', 200, '', 'Food & Dining', '2026-11-20', 0),))
+Hindi pending payer: asked person (expected person); draft (('pay', 450, 'नील', '', '2026-11-20', 0),) (expected (('pay', 450, 'नील', '', '', 0),))
+correction in a reply: asked amount (expected amount); draft (('debit', 650, '', 'Transport', '2026-11-20', 0),) (expected (('debit', 560, '', 'Transport', '2026-11-20', 0),))
+Correct first action: 5/10
+Exact ledger/reminders after at most one reply: 3/10
+Correct question type: 2/2
+Unnecessary follow-ups: 0 · Missed follow-ups: 0 · Wrong drafts offered: 5
+Missing entries: 7 · Unexpected entries: 8 · Elapsed: 95.9s
+Provider unavailable: 0 · Draft rejected: 0
+Same model proposals after validation
+balance without punctuation: The source contains more than one possible payment amount.
+Devanagari mixed directions: The date could not be verified in the source phrase.
+correction after payee: The date could not be verified in the source phrase.
+repayment without a bill: The date could not be verified in the source phrase.
+several outstanding debts: The quote needs one complete, current transaction statement.
+settled versus expected: The quote needs one complete, current transaction statement.
+count beside actual amount: The quote needs one complete, current transaction statement.
+negation alongside a real expense: The source does not show a completed payment.
+Hindi pending payer: The date could not be verified in the source phrase.
+correction in a reply: The source contains more than one possible payment amount.
+Correct first action: 1/10
+Exact ledger/reminders after at most one reply: 0/10
+Correct question type: 1/2
+Unnecessary follow-ups: 0 · Missed follow-ups: 0 · Wrong drafts offered: 0
+Missing entries: 17 · Unexpected entries: 0 · Elapsed: 0.0s
+Provider unavailable: 0 · Draft rejected: 10

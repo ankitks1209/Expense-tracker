@@ -40,7 +40,7 @@ HINDI_TERMS = {
     "रुपये": "rupees", "रुपए": "rupees", "रुपया": "rupee",
     "हाँ": "haan", "हां": "haan", "नहीं": "nahi", "जी": "ji",
     "सैलरी": "salary", "वेतन": "salary", "रिफंड": "refund",
-    "डिनर": "dinner", "लंच": "lunch", "चाय": "chai", "कॉफी": "coffee",
+    "मूवी": "movie", "डिनर": "dinner", "लंच": "lunch", "चाय": "chai", "कॉफी": "coffee",
     "खाना खाया": "ate food", "खाना खाए": "ate food", "खाने पर": "on food", "खाने के लिए": "for food",
     "दोस्त को": "to a friend",
     "किराना": "groceries", "पेट्रोल": "petrol", "मेट्रो": "metro", "टैक्सी": "taxi",

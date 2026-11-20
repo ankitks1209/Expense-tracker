@@ -1,0 +1,81 @@
+Local parser
+Correct first action: 40/40
+Exact ledger/reminders after at most one reply: 40/40
+Correct question type: 12/12
+Unnecessary follow-ups: 0 · Missed follow-ups: 0 · Wrong drafts offered: 0
+Missing entries: 0 · Unexpected entries: 0 · Elapsed: 0.0s
+Provider unavailable: 0 · Draft rejected: 0
+Groq model: openai/gpt-oss-20b
+Structured model before validation
+rent correction: asked nothing (expected nothing); draft (('debit', 4000, '', 'Utilities & Bills', '2026-11-20', 0),) (expected (('debit', 4000, '', 'Home & Maintenance', '2026-11-20', 0),))
+repeated no: asked nothing (expected nothing); draft (('debit', 4000, '', 'Utilities & Bills', '2026-11-20', 0),) (expected (('debit', 4000, '', 'Home & Maintenance', '2026-11-20', 0),))
+Romanized correction: asked nothing (expected nothing); draft (('debit', 4500, '', 'Utilities & Bills', '2026-11-20', 0),) (expected (('debit', 4500, '', 'Home & Maintenance', '2026-11-20', 0),))
+Hindi correction: asked nothing (expected nothing); draft (('debit', 5000, '', 'Home & Maintenance', '2026-11-20', 0),) (expected (('debit', 4000, '', 'Home & Maintenance', '2026-11-20', 0),))
+balance in Hindi: Groq request failed (HTTP 400).
+balance in English: asked nothing (expected nothing); draft (('collect', 1900, 'friend', '', '2026-11-20', 2), ('credit', 3000, '', 'Other Income', '2026-11-20', 0), ('debit', 500, '', 'Food & Dining', '2026-11-20', 0), ('debit', 1900, '', 'Other', '2026-11-20', 0)) (expected (('credit', 3000, '', 'Other Income', '2026-11-20', 0), ('debit', 500, '', 'Food & Dining', '2026-11-20', 0), ('debit', 1900, '', 'Other', '2026-11-20', 0)))
+balance in Hinglish: asked nothing (expected nothing); draft (('debit', 500, '', 'Food & Dining', '2026-11-20', 0), ('debit', 1900, '', 'Other', '2026-11-20', 0)) (expected (('credit', 3000, '', 'Other Income', '2026-11-20', 0), ('debit', 500, '', 'Food & Dining', '2026-11-20', 0), ('debit', 1900, '', 'Other', '2026-11-20', 0)))
+uncompleted Hindi charge: asked nothing (expected nothing); draft (('pay', 500, '', '', '2026-11-20', 0),) (expected ())
+obvious refund: asked nothing (expected nothing); draft (('credit', 350, '', 'Other Income', '2026-11-20', 0),) (expected (('credit', 350, '', 'Reimbursement', '2026-11-20', 0),))
+refund to clarify: asked nothing (expected refund); draft (('credit', 350, '', 'Other', '2026-11-20', 0),) (expected (('credit', 350, '', 'Reimbursement', '2026-11-20', 0),))
+pending refund: asked nothing (expected refund); draft (('credit', 350, '', 'Other', '2026-11-20', 0),) (expected ())
+split share unclear: asked nothing (expected amount); draft (('collect', 250, 'rahul', '', '2026-11-20', 1), ('debit', 500, '', 'Food & Dining', '2026-11-20', 0)) (expected (('debit', 250, '', 'Food & Dining', '2026-11-20', 0),))
+split share specified: asked nothing (expected nothing); draft (('collect', 600, '', '', '2026-11-20', 1), ('debit', 300, '', 'Food & Dining', '2026-11-20', 0)) (expected (('debit', 300, '', 'Food & Dining', '2026-11-20', 0),))
+split and unrelated expense: asked nothing (expected amount); draft (('collect', 250, 'rahul', '', '2026-11-20', 1), ('debit', 240, '', 'Transport', '2026-11-20', 0), ('debit', 500, '', 'Food & Dining', '2026-11-20', 0)) (expected (('debit', 240, '', 'Transport', '2026-11-20', 0), ('debit', 250, '', 'Food & Dining', '2026-11-20', 0)))
+explicit movie repayment: asked nothing (expected nothing); draft (('collect', 1500, 'aditya', '', '2026-11-20', 1), ('debit', 3000, '', 'Entertainment', '2026-11-20', 0)) (expected (('collect', 1500, 'aditya', '', '', 1), ('debit', 3000, '', 'Entertainment', '2026-11-20', 0)))
+movie reply gives two amounts: asked nothing (expected amount); draft (('credit', 1500, '', 'Entertainment', '2026-11-20', 0),) (expected (('collect', 1500, 'aditya', '', '', 1), ('debit', 3000, '', 'Entertainment', '2026-11-20', 0)))
+half split: asked nothing (expected due); draft (('collect', 600, 'rahul', '', '2026-11-20', 1), ('debit', 1200, '', 'Food & Dining', '2026-11-20', 0)) (expected (('collect', 600, 'rahul', '', '', 1), ('debit', 1200, '', 'Food & Dining', '2026-11-20', 0)))
+someone owes me: asked nothing (expected nothing); draft (('collect', 500, 'rahul', '', '2026-11-20', 0),) (expected (('collect', 500, 'rahul', '', '', 0),))
+I owe in Hindi: asked nothing (expected nothing); draft (('pay', 500, 'आदित्य', '', '2026-11-20', 0),) (expected (('pay', 500, 'आदित्य', '', '', 0),))
+owe in a Hindi list: asked nothing (expected nothing); draft (('collect', 300, 'aditya', '', '2026-11-20', 0), ('debit', 500, '', 'Food & Dining', '2026-11-20', 0)) (expected (('debit', 500, '', 'Food & Dining', '2026-11-20', 0), ('pay', 300, 'आदित्य', '', '', 0)))
+ambiguous date: asked nothing (expected date); draft (('debit', 500, '', 'Food & Dining', '2026-03-04', 0),) (expected (('debit', 500, '', 'Food & Dining', '2025-04-03', 0),))
+explicit future date: asked date (expected future); draft (('debit', 500, '', 'Groceries', '2026-11-20', 0),) (expected (('debit', 500, '', 'Groceries', '2026-11-21', 0),))
+amount with no purpose: Groq request failed (HTTP 400).
+another person paid: asked nothing (expected payer); draft () (expected ())
+refund mixed with expense: asked nothing (expected nothing); draft (('credit', 240, '', 'Other Income', '2026-11-20', 0), ('debit', 120, '', 'Food & Dining', '2026-11-20', 0)) (expected (('credit', 240, '', 'Reimbursement', '2026-11-20', 0), ('debit', 120, '', 'Food & Dining', '2026-11-20', 0)))
+Correct first action: 15/40
+Exact ledger/reminders after at most one reply: 16/40
+Correct question type: 2/12
+Unnecessary follow-ups: 0 · Missed follow-ups: 8 · Wrong drafts offered: 21
+Missing entries: 23 · Unexpected entries: 23 · Elapsed: 335.4s
+Provider unavailable: 2 · Draft rejected: 0
+Same model proposals after validation
+simple Hinglish: The date could not be verified in the source phrase.
+salary: The date could not be verified in the source phrase.
+decimal: The date could not be verified in the source phrase.
+mixed directions: The date could not be verified in the source phrase.
+two amounts and a count: The quote needs one complete, current transaction statement.
+two dated expenses: An entry does not match the transcript.
+rent correction: The date could not be verified in the source phrase.
+repeated no: The date could not be verified in the source phrase.
+Romanized correction: The date could not be verified in the source phrase.
+Hindi correction: An amount could not be verified in rupees.
+balance in Hindi: Groq request failed (HTTP 400).
+balance in English: The date could not be verified in the source phrase.
+balance in Hinglish: The source contains more than one possible payment amount.
+uncompleted Hindi charge: The reminder direction is not supported by the statement.
+obvious refund: The date could not be verified in the source phrase.
+refund to clarify: The money direction conflicts with the source.
+pending refund: The money direction conflicts with the source.
+split share unclear: The date could not be verified in the source phrase.
+split share specified: The source contains more than one possible payment amount.
+split and unrelated expense: The date could not be verified in the source phrase.
+explicit movie repayment: The quote needs one complete, current transaction statement.
+movie reply gives two amounts: The source does not show a completed payment.
+half split: The quote needs one complete, current transaction statement.
+someone owes me: The date could not be verified in the source phrase.
+I owe in Hindi: The date could not be verified in the source phrase.
+owe in a Hindi list: The date could not be verified in the source phrase.
+amount missing: The date could not be verified in the source phrase.
+two possible amounts: The source contains more than one possible payment amount.
+ambiguous date: The date could not be verified in the source phrase.
+explicit future date: The date could not be verified in the source phrase.
+amount with no purpose: Groq request failed (HTTP 400).
+another person paid: asked nothing (expected payer); draft () (expected ())
+two corrections: The date could not be verified in the source phrase.
+refund mixed with expense: The date could not be verified in the source phrase.
+Correct first action: 8/40
+Exact ledger/reminders after at most one reply: 7/40
+Correct question type: 2/12
+Unnecessary follow-ups: 0 · Missed follow-ups: 1 · Wrong drafts offered: 0
+Missing entries: 46 · Unexpected entries: 0 · Elapsed: 0.0s
+Provider unavailable: 2 · Draft rejected: 31

@@ -1,6 +1,8 @@
-# 💸 ExpenseBot — AI-powered Expense Tracker
+# Enma · Multilingual expense tracker
 
-> Type expenses in plain English. AI extracts the details. Dashboard shows you the trends.
+Record income, expenses and repayments in English, Hindi or Hinglish. Enma asks for details when an amount or repayment is unclear.
+
+[Project evaluation and architecture](submission/REPORT.md) · [Mobile demonstration](submission/mobile-demo.gif)
 
 ---
 
@@ -24,8 +26,8 @@
 
 ```bash
 # If you have git:
-git clone <your-repo-url>
-cd expense_tracker
+git clone https://github.com/KakarotGolu/Expense-tracker.git
+cd Expense-tracker
 
 # Or just unzip the folder and cd into it
 ```
@@ -96,7 +98,7 @@ python -m benchmarks.enma_understanding --split dev --verbose
 python -m benchmarks.enma_understanding --split holdout --verbose
 ```
 
-The 50 cases start from text, including examples of transcription errors. They compare amounts, money direction, reminder counterparties, and whether Enma asks for the right kind of clarification. The default run is offline and never writes to the ledger. Add `--model` to send only the fictional examples to Groq and compare both parsers. The current holdout has been inspected, so reserve new unseen examples for a final comparison.
+The 50 cases start from text, including examples of transcription errors. They score amount, direction, category, date, counterparty, repayment link and follow-up type. The default run is offline and never writes to the ledger. Add `--model` to send only the fictional examples to Groq and compare the model before and after validation on shared responses. Use `--retry-rate-limits --request-interval 8` for a paced comparison. The current holdout has been inspected, so reserve new unseen examples for a final comparison.
 
 For an audio comparison, record the fictional cases as WAV files named `01.wav`, `02.wav`, and so on in case order. Pass `--audio-dir PATH --verbose` to send the clips to Gnani, print the intended and transcribed words, and score both versions. Add `--model` to include Groq in that comparison.
 
@@ -197,27 +199,16 @@ In personal mode the app uses one ledger per deployment. For a private personal 
 
 ---
 
-## 🤖 Changing the AI Model
+## Model used in the evaluation
 
-In `ai_extractor.py`, change the model name:
-
-```python
-model="llama-3.3-70b-versatile",   # Default — best accuracy
-# model="llama-3.1-8b-instant",    # Faster, slightly less accurate
-# model="gemma2-9b-it",            # Google's Gemma — also free on Groq
-# model="mixtral-8x7b-32768",      # Mixtral — good for long context
-```
-
-All models are **free** on Groq's free tier.
-
----
+The optional chat model is configured in `understanding.py`. The benchmark accepts `--model MODEL_ID` for models supporting its structured response schema.
 
 ## 📦 Dependencies
 
 | Package | Purpose |
 |---|---|
 | `streamlit` | Web UI for both chat and dashboard |
-| `groq` | Optional written-amount extraction |
+| `groq` | Optional model-assisted transaction understanding |
 | `plotly` | Interactive charts on dashboard |
 | `pandas` | Data manipulation for analytics |
 | `reportlab` | Dashboard PDF exports |

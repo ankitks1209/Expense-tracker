@@ -61,6 +61,11 @@ class FinanceFeatureTests(unittest.TestCase):
         self.assertEqual(db.monthly_budgets("2026-11"), {"Transport": 750})
         self.assertIn("Limit reached", dashboard_utils.budget_progress(750, 750)["status"])
 
+    def test_gnani_movie_transcript_preserves_entertainment_category(self):
+        text = voice_input.normalize_voice_transcript("मैंने मूवी के लिए 3,000 रुपये पे किए।")
+        entry = ai_extractor.extract_expense(text, allow_remote_amount=False)
+        self.assertEqual((entry["amount"], entry["category"]), (3000, "Entertainment"))
+
     def test_rule_engine_parses_merchant_and_category_without_ai(self):
         result = ai_extractor.extract_expense("uber 240 today")
 

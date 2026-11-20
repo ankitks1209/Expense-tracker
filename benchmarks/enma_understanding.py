@@ -1,6 +1,7 @@
 """Offline pilot for measuring Enma's transcript parser and follow-up handling."""
 
 import argparse
+import json
 from collections import Counter
 from dataclasses import dataclass
 from dataclasses import replace
@@ -10,7 +11,7 @@ from time import monotonic, sleep
 from unittest.mock import patch
 
 import ai_extractor
-from understanding import MODEL, UnderstandingError, ask_model, groq_key
+from understanding import MODEL, UnderstandingError, ModelUnavailable, request_proposal, validate_proposal, groq_key
 from voice_input import TranscriptionError, gnani_api_key, normalize_voice_transcript, transcribe_recording
 
 
@@ -138,7 +139,7 @@ def local_parser(turns, pending=None):
 
 def evaluate(cases, run=local_parser, *, verbose=False):
     correct_first, correct_final, unnecessary, wrong_draft, missed, correct_questions = (0,) * 6
-    unavailable = 0
+    unavailable = rejected = 0
     missing_entries, extra_entries = 0, 0
     started = monotonic()
     for case in cases:
@@ -146,7 +147,8 @@ def evaluate(cases, run=local_parser, *, verbose=False):
         try:
             result = run(turns)
         except UnderstandingError as exc:
-            unavailable += 1
+            unavailable += isinstance(exc, ModelUnavailable)
+            rejected += not isinstance(exc, ModelUnavailable)
             missing_entries += len(case.expected)
             if verbose:
                 print(f"{case.name}: {exc}")
@@ -166,7 +168,8 @@ def evaluate(cases, run=local_parser, *, verbose=False):
             try:
                 result = run(turns, pending)
             except UnderstandingError as exc:
-                unavailable += 1
+                unavailable += isinstance(exc, ModelUnavailable)
+                rejected += not isinstance(exc, ModelUnavailable)
                 missing_entries += len(case.expected)
                 if verbose:
                     print(f"{case.name}: {exc}")
@@ -184,8 +187,7 @@ def evaluate(cases, run=local_parser, *, verbose=False):
     print(f"Correct question type: {correct_questions}/{sum(bool(case.question) for case in cases)}")
     print(f"Unnecessary follow-ups: {unnecessary} · Missed follow-ups: {missed} · Wrong drafts offered: {wrong_draft}")
     print(f"Missing entries: {missing_entries} · Unexpected entries: {extra_entries} · Elapsed: {monotonic() - started:.1f}s")
-    if unavailable:
-        print(f"Cases with unavailable or rejected model output: {unavailable}")
+    print(f"Provider unavailable: {unavailable} · Draft rejected: {rejected}")
 
 
 if __name__ == "__main__":
@@ -195,6 +197,8 @@ if __name__ == "__main__":
     parser.add_argument("--model", nargs="?", const=MODEL, help="Also test Groq using only these fictional inputs.")
     parser.add_argument("--limit", type=int, help="Run only the first N cases in the split.")
     parser.add_argument("--request-interval", type=float, default=0, help="Seconds between Groq request starts.")
+    parser.add_argument("--retry-rate-limits", action="store_true",
+                        help="Honor short provider cooldowns and retry a fictional case up to three times.")
     parser.add_argument("--audio-dir", type=Path, help="Optional fictional WAV recordings named 01.wav, 02.wav, and so on, in case order.")
     args = parser.parse_args()
     cases = DEV if args.split == "dev" else HOLDOUT
@@ -213,11 +217,58 @@ if __name__ == "__main__":
         print(f"Groq model: {args.model}")
         last_request = [0.0]
 
-        def model_parser(turns, pending=None):
-            sleep(max(0, args.request_interval - (monotonic() - last_request[0])))
-            last_request[0] = monotonic()
-            return ask_model(turns, key, model=args.model)
+        cache = {}
 
+        def get_proposal(turns):
+            key_text = json.dumps(turns, ensure_ascii=False)
+            if key_text not in cache:
+                sleep(max(0, args.request_interval - (monotonic() - last_request[0])))
+                last_request[0] = monotonic()
+                for attempt in range(4):
+                    try:
+                        cache[key_text] = request_proposal(turns, key, model=args.model, today=date.today())
+                        break
+                    except UnderstandingError as exc:
+                        delay = getattr(exc, "retry_after", None)
+                        if not args.retry_rate_limits or delay is None or delay > 120 or attempt == 3:
+                            cache[key_text] = exc
+                            break
+                        sleep(max(1, delay + 1))
+                        last_request[0] = monotonic()
+            proposal = cache[key_text]
+            if isinstance(proposal, Exception):
+                raise proposal
+            return proposal
+
+        def raw_parser(turns, pending=None):
+            proposal = get_proposal(turns)
+            if proposal["question"]:
+                return {"clarification": {"kind": proposal["question_kind"], "question": proposal["question"]}}
+            rows, reminders = [], []
+            indexes = {}
+            for i, entry in enumerate(proposal["entries"]):
+                if entry["kind"] in ("credit", "debit"):
+                    indexes[i] = len(rows)
+                    rows.append(dict(amount=entry["amount"], category=entry["category"],
+                                     transaction_type=entry["kind"], date=entry["day"] or day(0)))
+            for entry in proposal["entries"]:
+                if entry["kind"] in ("collect", "pay"):
+                    parent = entry["expense_index"]
+                    reminders.append(dict(amount=entry["amount"], direction=entry["kind"], person=entry["person"],
+                                          due_date=entry["day"], transaction_index=None if parent == -1 else indexes.get(parent, -2)))
+            return {"transactions": rows, "reminders": reminders}
+
+        def model_parser(turns, pending=None):
+            try:
+                return validate_proposal(get_proposal(turns), turns, today=date.today())
+            except (ValueError, KeyError, IndexError, TypeError, ArithmeticError) as exc:
+                if isinstance(exc, UnderstandingError):
+                    raise
+                raise UnderstandingError("Invalid model draft") from None
+
+        print("Structured model before validation")
+        evaluate(cases, raw_parser, verbose=args.verbose)
+        print("Same model proposals after validation")
         evaluate(cases, model_parser, verbose=args.verbose)
     if args.audio_dir:
         voice_key = gnani_api_key()

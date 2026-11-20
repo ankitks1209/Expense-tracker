@@ -79,7 +79,7 @@ class UnderstandingError(ValueError):
 
 
 class ModelUnavailable(UnderstandingError):
-    pass
+    retry_after = None
 
 
 def groq_key():
@@ -90,7 +90,18 @@ def groq_key():
 
 
 def ask_model(turns, api_key, *, model=MODEL, today=None):
-    """Only the active entry and its clarification turns go to the provider."""
+    today = today or date.today()
+    proposal = request_proposal(turns, api_key, model=model, today=today)
+    try:
+        return validate_proposal(proposal, turns, today=today)
+    except (IndexError, TypeError, KeyError, ValueError, AttributeError, InvalidOperation) as exc:
+        if isinstance(exc, UnderstandingError):
+            raise
+        raise UnderstandingError("Enma couldn’t verify the model’s draft.") from None
+
+
+def request_proposal(turns, api_key, *, model, today):
+    """Fetch a structured proposal. The app validates it before showing a draft."""
     if not Groq or not api_key:
         raise ModelUnavailable("Model-assisted parsing needs a Groq key.")
     today = today or date.today()
@@ -110,14 +121,19 @@ def ask_model(turns, api_key, *, model=MODEL, today=None):
                 "name": "enma_draft", "strict": True, "schema": SCHEMA,
             }},
         )
-        data = json.loads(response.choices[0].message.content)
-        return validate_proposal(data, turns, today=today)
+        return json.loads(response.choices[0].message.content)
     except UnderstandingError:
         raise
     except APIError as exc:
         status = getattr(exc, "status_code", None)
         reason = f"HTTP {status}" if status else type(exc).__name__
-        raise ModelUnavailable(f"Groq request failed ({reason}).") from None
+        failure = ModelUnavailable(f"Groq request failed ({reason}).")
+        if status == 429:
+            try:
+                failure.retry_after = float(exc.response.headers.get("retry-after", "60"))
+            except (AttributeError, TypeError, ValueError):
+                failure.retry_after = 60
+        raise failure from None
     except (IndexError, TypeError, KeyError, ValueError, AttributeError, InvalidOperation):
         raise UnderstandingError("Enma couldn’t verify the model’s draft.") from None
 
