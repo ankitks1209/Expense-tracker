@@ -15,7 +15,7 @@ from ai_extractor import (
     ClarificationNeeded, _amount, _amount_candidates, _pick_category, _resolve_date, _validate_amount,
 )
 from voice_input import normalize_voice_transcript
-from debt_language import loan_intent
+from debt_language import completed_repayment, loan_intent
 from transaction_evidence import (
     amount_positions, conversation_statements, evidence_for, money_direction, payment_status, reminder_direction,
 )
@@ -232,6 +232,9 @@ def validate_proposal(data, turns, *, today):
             categories = INCOME_CATEGORIES if kind == "credit" else EXPENSE_CATEGORIES
             if entry["category"] not in categories or (day and day > today):
                 raise UnderstandingError("The transaction needs a valid category and completed date.")
+            settlement = completed_repayment(payment_text)
+            if settlement:
+                common["settlement_person"] = settlement[1]
             transactions.append({
                 **common, "transaction_type": kind, "category": entry["category"],
                 "date": (day or today).isoformat(), "raw_input": originals[0],

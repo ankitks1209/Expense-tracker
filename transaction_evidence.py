@@ -8,7 +8,7 @@ from ai_extractor import (
     UPCOMING_REPAYMENT, _amount, _amount_candidates, _apply_amount_corrections,
 )
 from voice_input import normalize_voice_transcript
-from debt_language import PROMISE_RETURN, debt_intent, loan_intent, named_return
+from debt_language import completed_repayment, PROMISE_RETURN, debt_intent, loan_intent, named_return
 
 
 BOUNDARY = re.compile(
@@ -175,6 +175,9 @@ def payment_status(statement, amount):
 
 
 def money_direction(text):
+    settlement = completed_repayment(text)
+    if settlement:
+        return settlement[0]
     credit, debit = CREDIT.search(text), DEBIT.search(text)
     if credit and debit:
         return "ambiguous"

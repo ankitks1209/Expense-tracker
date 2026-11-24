@@ -23,6 +23,31 @@ class FinanceFeatureTests(unittest.TestCase):
         db.DB_PATH = os.path.join(self.temp_dir, "expenses.db")
         db.init_db()
 
+    def test_spoken_movie_repayment_and_salary_deduction(self):
+        purchase = ai_extractor.extract_expense("I paid 3000 for movie tickets. Aditya will return 1500.")
+        db.save_chat_entries([purchase], [])
+        message = ("आदित्य has returned me the 1500 he gave, and now I paid. 3000, no, 4000 for the rent "
+                   "and 2000 for the groceries and food. And I received 10,000 as my salary, "
+                   "in which 500 was deducted. Due to tax, and 500 is for transport.")
+        pending = ai_extractor.extract_expense(message)["clarification"]
+        self.assertEqual(pending["kind"], "net_salary")
+        self.assertIn("clarification", ai_extractor.resolve_clarification(pending, "500 tax"))
+        rows = ai_extractor.resolve_clarification(pending, "9500")["transactions"]
+        self.assertEqual([(r["amount"], r["transaction_type"]) for r in rows],
+                         [(1500, "credit"), (4000, "debit"), (2000, "debit"), (9500, "credit"), (500, "debit")])
+        ids, _ = db.save_chat_entries(rows, [])
+        self.assertFalse(db.get_repayments())
+        db.undo_chat_entries(ids, [])
+        self.assertEqual(len(db.get_repayments()), 1)
+
+    def test_paying_someone_back_settles_only_payable(self):
+        for direction in ("collect", "pay"):
+            db.add_repayment(direction, "Aditya", 1500, "Movie")
+        payment = ai_extractor.extract_expense("I returned 1500 to Aditya")
+        self.assertEqual(payment["transaction_type"], "debit")
+        db.save_chat_entries([payment], [])
+        self.assertEqual([row["direction"] for row in db.get_repayments()], ["collect"])
+
     def tearDown(self):
         db.DB_PATH = self.original_db_path
         shutil.rmtree(self.temp_dir, ignore_errors=True)

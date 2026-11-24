@@ -10,7 +10,7 @@ import re
 import unicodedata
 from datetime import date, timedelta
 from decimal import Decimal, InvalidOperation
-from debt_language import PROMISE_RETURN, debt_intent, loan_intent, named_return
+from debt_language import completed_repayment, PROMISE_RETURN, debt_intent, loan_intent, named_return
 import streamlit as st
 from streamlit.errors import StreamlitSecretNotFoundError
 
@@ -211,6 +211,7 @@ CONFIRMATION = re.compile(
 )
 NO_PAYMENT = re.compile(
     r"\b(?:did not pay|didn['’]t pay|haven['’]t paid|have not paid|never paid|not paid|"
+    r"not returned|never returned|not repaid|never repaid|did not return|did not repay|"
     r"did not lend|didn['’]t lend|haven['’]t lent|have not lent|never lent|not lent|"
     r"(?:will|might|would|need to|going to) lend|planning to lend|"
     r"(?:card|payment|transaction) (?:was )?(?:declined|failed)|(?:payment|transaction) (?:is )?pending|"
@@ -381,6 +382,8 @@ def _validate_amount(amount):
 
 
 def _clauses(message):
+    # A pause between the verb and amount is common in dictated lists.
+    message = re.sub(r"\b(paid|spent|received)\.\s+(?=₹?\s*\d)", r"\1 ", message, flags=re.I)
     message = re.sub(r"\b(?:splited|splitted)\b", "split", message, flags=re.I)
     message = re.sub(r"\b(no|nahi|nahin)[,.;]\s*(?=(?:no|nahi|nahin)\b|₹?\s*\d)", r"\1 ", message, flags=re.I)
     # Recognizers often put the comma after a trailing verb in a mixed-language list.
@@ -582,7 +585,8 @@ def _extract_clause(clause, answers, future_confirmed, today, *, allow_remote_am
     payment_text, repayment_text, person = _repayment_parts(clause)
     if repayment_text and not _amount_candidates(payment_text) and not DEBIT.search(payment_text):
         raise ClarificationNeeded("details", "What did you pay for, and how much did you pay upfront?")
-    direction = _direction(payment_text)
+    settlement = completed_repayment(payment_text)
+    direction = settlement[0] if settlement else _direction(payment_text)
     refund = re.search(r"\b(?:refund(?:ed)?|reimbursement)\b", clause, re.I)
     if refund and not answers.get("refund"):
         settled = re.search(
@@ -621,6 +625,11 @@ def _extract_clause(clause, answers, future_confirmed, today, *, allow_remote_am
         )
 
     amount = answers.get("amount")
+    if re.search(r"\bsalary\b", payment_text, re.I) and re.search(r"\bdeducted\b", payment_text, re.I) and len(_amount_candidates(payment_text)) == 2:
+        if amount is None:
+            raise ClarificationNeeded("net_salary", "After the deduction, how much salary actually reached your account?")
+        # The credited amount already accounts for withholding.
+        direction = "credit"
     if amount is None:
         amount_source = payment_text
         if (SPLIT.search(clause) or repayment_text) and not loan:
@@ -682,7 +691,9 @@ def _extract_clause(clause, answers, future_confirmed, today, *, allow_remote_am
                 question = f"What amount in rupees should I record for {subject}?"
             raise ClarificationNeeded("amount", question)
     category = _pick_category(payment_text, direction)
-    if category == "Other" and not answers.get("details") and not (DEBIT.search(clause) or CREDIT.search(clause)):
+    if settlement:
+        category = "Reimbursement" if direction == "credit" else "Other"
+    if not settlement and category == "Other" and not answers.get("details") and not (DEBIT.search(clause) or CREDIT.search(clause)):
         raise ClarificationNeeded(
             "details",
             f"What was {_rupees(amount)} for? Say what you paid for, or tell me if you received the money.",
@@ -737,6 +748,10 @@ def _extract_clause(clause, answers, future_confirmed, today, *, allow_remote_am
         "amount": amount, "transaction_type": direction, "date": txn_date,
         "category": category, "note": note,
     }
+    if settlement:
+        transaction["settlement_person"] = settlement[1]
+        preposition = "from" if direction == "credit" else "to"
+        transaction["note"] = f"Repayment {preposition} {settlement[1]}"
     if repayment:
         transaction["repayment"] = repayment
     return transaction
@@ -855,6 +870,11 @@ def resolve_clarification(pending: dict, reply: str) -> dict:
             if direction not in {"collect", "pay"}:
                 raise ValueError("Say “I need to pay” or “I need to collect”.")
             answers["debt_direction"] = direction
+        elif kind == "net_salary":
+            amount = _reminder_amount(original_reply)
+            if amount is None or re.search(r"\b(?:tax|deduction)\b", reply) and not re.search(r"\b(?:after|net|credited|received)\b", reply):
+                raise ValueError(pending["question"])
+            answers["amount"] = amount
         elif kind in {"amount", "due"}:
             amount_reply = _apply_amount_corrections(original_reply)
             payment, repayment, person = _repayment_parts(amount_reply)

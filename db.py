@@ -10,6 +10,8 @@ from contextlib import closing
 from datetime import date
 from decimal import Decimal, InvalidOperation
 
+from debt_language import person_key
+
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "expenses.db")
 
 
@@ -152,6 +154,17 @@ def save_chat_entries(transactions, reminders, *, check_duplicates=False):
                 row,
             )
             ids.append(cursor.lastrowid)
+            if person := transaction.get("settlement_person"):
+                direction = "collect" if txn_type == "credit" else "pay"
+                candidates = conn.execute(
+                    "SELECT id, person FROM repayments WHERE settlement_id IS NULL AND direction = ? AND amount = ?",
+                    (direction, amount),
+                )
+                matches = [r["id"] for r in candidates if person_key(r["person"]) == person_key(person)]
+                if len(matches) > 1:
+                    raise ValueError("Several reminders match this repayment. Select the correct one on the Dashboard.")
+                if matches:
+                    conn.execute("UPDATE repayments SET settlement_id = ? WHERE id = ?", (cursor.lastrowid, matches[0]))
             repayment = transaction.get("repayment")
             if repayment:
                 if txn_type != "debit" or Decimal(str(repayment["amount"])) > Decimal(str(amount)):

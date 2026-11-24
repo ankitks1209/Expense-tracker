@@ -96,3 +96,28 @@ def loan_intent(text):
             if person.casefold() not in INVALID_NAMES and re.search(r"[^\W\d_]", person):
                 return {"person": person[:1].upper() + person[1:]}
     return {"person": ""}
+
+
+# Completed repayments identify both the direction and the person on the other side.
+_PERSON = r"(?P<person>[^\W\d_][\w\u0900-\u097f'-]*)"
+_COMPLETED = (
+    ("credit", rf"^{_PERSON}\s+(?:has\s+)?(?:returned\s+me|repaid\s+me|paid\s+me\s+back)\b"),
+    ("debit", rf"^i\s+(?:have\s+)?(?:repaid\s+|paid\s+){_PERSON}\s+back\b"),
+    ("debit", rf"^i\s+(?:have\s+)?repaid\s+{_PERSON}(?=\s+₹?\s*\d)"),
+    ("debit", rf"^i\s+(?:have\s+)?returned\s+(?:₹?\s*[\d,.]+)\s+to\s+{_PERSON}"),
+    ("credit", rf"^{_PERSON}\s+(?:ne|ने)\s+(?:mujhe|मुझे)\s+.*?\b(?:wapas|waapas)\s+(?:diye|diya)\b"),
+)
+
+
+def completed_repayment(text):
+    for direction, pattern in _COMPLETED:
+        match = re.search(pattern, text.strip(), re.I)
+        if match:
+            return direction, match["person"]
+    return None
+
+
+def person_key(name):
+    # A dictated Hindi name can appear in a different script on successive turns.
+    key = name.strip().casefold()
+    return {"आदित्य": "aditya"}.get(key, key)
