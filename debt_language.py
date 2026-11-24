@@ -34,13 +34,20 @@ INVALID_NAMES = {
 # Require the end of the promise so “return 1500 to Rahul” cannot credit the user.
 NAMED_RETURN = re.compile(
     r"\b(?P<person>[^\W\d_]+)\s+will\s+(?:return|repay)(?:\s+me)?\s+"
-    r"(?=(?:₹|rs\.?|inr)?\s*\d[\d,]*(?:\.\d+)?(?:\s+rupees?)?(?:\s+to me)?"
+    r"(?=(?:₹|rs\.?|inr)?\s*\d[\d,]*(?:\.\d+)?(?:\s+rupees?)?(?:\s+to me)?(?:\s+from (?:it|that))?"
     r"\s*(?:$|[.!?;](?!\d)|,\s+|\band\b))", re.I,
+)
+
+# Dictation can place the debtor after the amount and insert a pause before the name.
+AMOUNT_FIRST_RETURN = re.compile(
+    r"\b(?:in|of|out of) which\s+(?:₹|rs\.?|inr)?\s*\d[\d,]*(?:\.\d+)?(?:\s+rupees?)?"
+    r"\s+will\s+(?:return|repay)(?:\s+me)?[,]?\s+(?P<person>[^\W\d_][\w\u0900-\u097f'-]*)"
+    r"(?=\s*(?:$|[.!?;]))", re.I,
 )
 
 
 def named_return(text):
-    match = NAMED_RETURN.search(text)
+    match = NAMED_RETURN.search(text) or AMOUNT_FIRST_RETURN.search(text)
     if match and match["person"].casefold() not in INVALID_NAMES | {"we", "it"}:
         return match
     return None
@@ -61,7 +68,7 @@ def debt_intent(text):
             r"(?P<name>[^\s,.;!?]+)\s+(?:को|ko)(?=\s|[.,;!?]|$)",
             r"\bto\s+(?P<name>[^\d₹,.;!?]+?)(?=\s+(?:for|on|today|tomorrow)\b|[.,;!?]|$)",
         ]
-    if direction != "pay":
+    if direction != "pay" and not person:
         patterns += [
             r"(?P<name>[^\s,.;!?]+)\s+(?:still\s+)?owes? me\b",
             r"(?P<name>[^\s,.;!?]+)\s+(?:से|se)(?=\s|[.,;!?]|$)",

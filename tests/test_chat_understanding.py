@@ -14,6 +14,25 @@ from voice_input import normalize_voice_transcript
 
 
 class ChatUnderstandingTests(unittest.TestCase):
+    def test_two_spoken_splits_reach_dashboard_with_person_and_purpose(self):
+        transcript = ("I paid 3000 for the movie. Aditya will retain, Aditya will return me 1500 from it. "
+                      "And I paid 500 for transport, in which 250 will return, Aditya.")
+        with TemporaryDirectory() as temp, patch.object(db, "DB_PATH", str(Path(temp) / "ledger.sqlite3")), patch(
+            "streamlit.secrets", {}
+        ), patch.dict(os.environ, {"ENMA_LEDGER_PASSCODE": "", "ENMA_DEMO_MODE": "0"}):
+            chat = AppTest.from_file("chat.py").run()
+            chat.chat_input(key="chat_input").set_value(transcript).run()
+            self.assertIsNone(chat.session_state.pending_clarification)
+            chat.button(key="save_voice_draft").click().run()
+            self.assertFalse(chat.exception)
+            self.assertEqual(db.get_summary_stats()["net_balance"], -3500)
+            dashboard = AppTest.from_file("dashboard.py").run()
+            self.assertFalse(dashboard.exception)
+            labels = [item.value for item in dashboard.text]
+            for label in ("Aditya owes you ₹1,500", "Movie", "Aditya owes you ₹250", "Transport"):
+                self.assertIn(label, labels)
+            self.assertEqual(len({r["expense_id"] for r in db.get_repayments()}), 2)
+
     def test_pending_loan_reply_keeps_the_whole_batch_and_saves_one_receivable(self):
         transcript = (
             "कल 10000 रुपये मिले, उसमें से 3500 नहीं, 4000 rent दिया। और 2000 खाने के लिए दिया, "

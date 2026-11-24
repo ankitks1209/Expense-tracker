@@ -417,6 +417,7 @@ def _clauses(message):
             or (HALF_SPLIT.search(part) and not DEBIT.search(part))
             or (SPLIT.search(clauses[-1]) and OWN_PAYMENT.match(part))
             or ((SPLIT.search(clauses[-1]) or DEBIT.search(clauses[-1]))
+                and not EXPLICIT_PAYMENT.match(part)
                 and (OWES_ME.search(part) or UPCOMING_REPAYMENT.search(part) or named_return(part)
                      or (loan_intent(clauses[-1]) and PROMISE_RETURN.search(part))))
             or (not _amount_candidates(clauses[-1]) and not DEBIT.search(clauses[-1])
