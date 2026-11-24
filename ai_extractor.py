@@ -10,7 +10,7 @@ import re
 import unicodedata
 from datetime import date, timedelta
 from decimal import Decimal, InvalidOperation
-from debt_language import PROMISE_RETURN, debt_intent, loan_intent
+from debt_language import PROMISE_RETURN, debt_intent, loan_intent, named_return
 import streamlit as st
 from streamlit.errors import StreamlitSecretNotFoundError
 
@@ -395,6 +395,7 @@ def _clauses(message):
     message = SAVINGS_SUFFIX.sub("; ", message)
     parts = re.split(
         r"\s*[;\n]\s*|(?<=[.!?])\s+(?=(?:i\s+)?(?:paid|spent|received|got|earned|bought|gave|maine|humne|aaj|kal)\b|₹?\s*\d)"
+        r"|(?<=[.!?,])\s+(?=i (?:owe|still owe|(?:have to|need to|will) (?:give|pay|return|repay))\b)"
         r"|\s+(?:and then|and also|and|then|aur)[.,]?\s+"
         r"|,\s+(?=(?:i\s+)?(?:paid|spent|received|got|earned)\b|₹?\s*\d)",
         message, flags=re.IGNORECASE,
@@ -413,7 +414,7 @@ def _clauses(message):
             or (HALF_SPLIT.search(part) and not DEBIT.search(part))
             or (SPLIT.search(clauses[-1]) and OWN_PAYMENT.match(part))
             or ((SPLIT.search(clauses[-1]) or DEBIT.search(clauses[-1]))
-                and (OWES_ME.search(part) or UPCOMING_REPAYMENT.search(part)
+                and (OWES_ME.search(part) or UPCOMING_REPAYMENT.search(part) or named_return(part)
                      or (loan_intent(clauses[-1]) and PROMISE_RETURN.search(part))))
             or (not _amount_candidates(clauses[-1]) and not DEBIT.search(clauses[-1])
                 and not CREDIT.search(clauses[-1]) and not NO_PAYMENT.search(clauses[-1]))
@@ -506,10 +507,12 @@ def _repayment_parts(clause):
     owed = OWES_ME.search(clause)
     upcoming = UPCOMING_REPAYMENT.search(clause)
     promised = PROMISE_RETURN.search(clause)
-    start = min((match.start() for match in (owed, upcoming, promised) if match), default=len(clause))
+    named = named_return(clause)
+    start = min((match.start() for match in (owed, upcoming, promised, named) if match), default=len(clause))
     payment, repayment = clause[:start], clause[start:]
     source = re.search(r"\bback\s+from\s+(?P<person>[^\s,.;!?]+)", repayment, re.I)
-    person = (source or owed)["person"] if source or owed else ""
+    counterparty = source or owed or named
+    person = counterparty["person"] if counterparty else ""
     if person.lower() in {"friend", "they", "he", "she", "you", "me", "someone", "still", "जिसमें", "जिसमे"}:
         person = ""
     return payment, repayment, person
@@ -855,6 +858,17 @@ def resolve_clarification(pending: dict, reply: str) -> dict:
         elif kind in {"amount", "due"}:
             amount_reply = _apply_amount_corrections(original_reply)
             payment, repayment, person = _repayment_parts(amount_reply)
+            # Older pending drafts asked users to choose between a payment and a named promise.
+            if kind == "amount" and not repayment:
+                promise = named_return(context["clauses"][index])
+                if promise:
+                    split = re.fullmatch(
+                        r"(.+?)\s+and\s+(₹?\s*[\d,]+(?:\.\d+)?)\s+from\s+"
+                        + re.escape(promise["person"]), amount_reply, re.I,
+                    )
+                    if split:
+                        payment, repayment = split.groups()
+                        person = promise["person"]
             if kind == "amount" and repayment and not STANDALONE_DEBT.match(context["clauses"][index]):
                 paid_amount = _reminder_amount(payment)
                 due = _reminder_amount(repayment)

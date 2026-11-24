@@ -27,6 +27,31 @@ class FinanceFeatureTests(unittest.TestCase):
         db.DB_PATH = self.original_db_path
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
+    def test_named_promise_after_movie_payment(self):
+        for separator in (". ", " and "):
+            message = "I paid ₹3,000 for movie tickets" + separator + "Aditya will return ₹1,500"
+            result = ai_extractor.extract_expense(message)
+            self.assertEqual((result["amount"], result["transaction_type"], result["category"]),
+                             (3000, "debit", "Entertainment"))
+            self.assertEqual(result["repayment"], {"person": "Aditya", "amount": 1500})
+        with patch.object(db, "_database_path", return_value=db.DB_PATH):
+            db.init_db()
+            db.save_chat_entries([result], [])
+            self.assertEqual(len(db.get_all_expenses_rows()), 1)
+            reminder, = db.get_repayments()
+        self.assertEqual((reminder["direction"], reminder["person"], reminder["amount"]),
+                         ("collect", "Aditya", 1500))
+
+    def test_movie_payment_and_personal_obligation(self):
+        for wording in ("I owe Aditya 1500", "I have to give 1500 to Aditya",
+                        "I have to return 1500 to Aditya"):
+            result = ai_extractor.extract_expense("I paid 3000 for movie tickets. " + wording)
+            payment, = result["transactions"]
+            reminder, = result["reminders"]
+            self.assertEqual((payment["transaction_type"], payment["amount"]), ("debit", 3000))
+            self.assertEqual((reminder["direction"], reminder["amount"], reminder["person"]),
+                             ("pay", 1500, "Aditya"))
+
     def test_connected_dates_and_cancelled_payments(self):
         parsed = ai_extractor.extract_expense(
             "Yesterday I paid 500 for food and received 1000 for work and paid 90 today for tea")

@@ -433,7 +433,7 @@ def render_follow_up(pending):
 
 def render_draft(draft):
     rows, reminders = draft_entries(draft)
-    count = len(rows) + len(reminders)
+    count = len(rows) + len(reminders) + sum(bool(row.get("repayment")) for row in rows)
     st.markdown(f"**Review {count} {'entry' if count == 1 else 'entries'} before saving**")
     st.html(entry_cards(rows, reminders))
     if reminders or any(row.get("repayment") for row in rows):

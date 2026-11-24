@@ -4,7 +4,7 @@ import re
 
 
 PAY = re.compile(
-    r"\bi\s+(?:still\s+)?owe\b|\b(?:have|need) to (?:give|pay)\b|"
+    r"\bi\s+(?:still\s+)?owe\b|\b(?:have|need) to (?:give|pay)\b|\bi (?:have to|need to|will) (?:return|repay)\b|"
     r"\bit (?:is|was) to give\b|\bstill to (?:give|pay)\b|"
     r"देने\s+(?:हैं|है)|\b(?:dene|dena)\s+(?:hain|hai)\b", re.I,
 )
@@ -30,12 +30,30 @@ INVALID_NAMES = {
 }
 
 
+# A named promise followed by a monetary amount, e.g. “Aditya will return ₹1,500”.
+# Require the end of the promise so “return 1500 to Rahul” cannot credit the user.
+NAMED_RETURN = re.compile(
+    r"\b(?P<person>[^\W\d_]+)\s+will\s+(?:return|repay)(?:\s+me)?\s+"
+    r"(?=(?:₹|rs\.?|inr)?\s*\d[\d,]*(?:\.\d+)?(?:\s+rupees?)?(?:\s+to me)?"
+    r"\s*(?:$|[.!?;](?!\d)|,\s+|\band\b))", re.I,
+)
+
+
+def named_return(text):
+    match = NAMED_RETURN.search(text)
+    if match and match["person"].casefold() not in INVALID_NAMES | {"we", "it"}:
+        return match
+    return None
+
+
 def debt_intent(text):
-    pay, collect = PAY.search(text), COLLECT.search(text)
+    pay = PAY.search(text)
+    promise = named_return(text)
+    collect = COLLECT.search(text) or promise
     if not pay and not collect:
         return None
     direction = "ambiguous" if pay and collect else "pay" if pay else "collect"
-    person = ""
+    person = promise["person"].capitalize() if promise and direction == "collect" else ""
     patterns = []
     if direction != "collect":
         patterns += [

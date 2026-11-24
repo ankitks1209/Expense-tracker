@@ -8,7 +8,7 @@ from ai_extractor import (
     UPCOMING_REPAYMENT, _amount, _amount_candidates, _apply_amount_corrections,
 )
 from voice_input import normalize_voice_transcript
-from debt_language import PROMISE_RETURN, debt_intent, loan_intent
+from debt_language import PROMISE_RETURN, debt_intent, loan_intent, named_return
 
 
 BOUNDARY = re.compile(
@@ -161,7 +161,7 @@ def payment_status(statement, amount):
     debt = STANDALONE_DEBT.match(text)
     if debt or TO_GIVE.search(text):
         return "pending", text
-    marker = min((match.start() for match in (owed, upcoming, promised) if match), default=len(text))
+    marker = min((match.start() for match in (owed, upcoming, promised, named_return(text)) if match), default=len(text))
     before, after = text[:marker], text[marker:]
     paid = [_amount(match) for match in _amount_candidates(before)]
     due = [_amount(match) for match in _amount_candidates(after)]
