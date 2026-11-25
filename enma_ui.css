@@ -213,25 +213,24 @@
 .amount-bar-track .muted { background: var(--enma-muted); }
 
 .dashboard-summary {
-    display: grid;
-    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-    gap: 24px;
-    align-items: center;
+    display: block;
     padding: clamp(20px, 3vw, 36px);
     background: var(--enma-feature);
     color: var(--enma-feature-ink);
     border-radius: 18px;
 }
+
 .dashboard-period { color: var(--enma-feature-muted); font-size: 14px; }
 .dashboard-summary strong { font-family: var(--enma-mono); font-weight: 500; overflow-wrap: anywhere; }
-.dashboard-result strong { display: block; font-size: clamp(28px, 4vw, 52px); margin: 6px 0; letter-spacing: -.03em; }
-.dashboard-result div:last-child { font-size: 15px; }
+.dashboard-net { display: block; font-size: clamp(28px, 4vw, 52px); margin: 6px 0; letter-spacing: -.03em; }
+.dashboard-label { font-size: 15px; }
 .dashboard-totals {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 16px;
-    border-left: 1px solid var(--enma-feature-rule);
-    padding-left: 24px;
+    grid-template-columns: repeat(2, minmax(0, 220px));
+    gap: 16px 32px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--enma-feature-rule);
 }
 .dashboard-totals dl { margin: 0; }
 .dashboard-totals dt { color: var(--enma-feature-muted); font-size: 13px; }
@@ -247,8 +246,7 @@
 .dashboard-flow-detail { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 12px; font-size: 13px; }
 .dashboard-flow-detail strong { margin-left: 4px; font-family: var(--enma-mono); font-weight: 500; }
 @media (max-width: 700px) {
-    .dashboard-summary { grid-template-columns: 1fr; gap: 16px; }
-    .dashboard-totals { border-left: 0; border-top: 1px solid var(--enma-feature-rule); padding: 16px 0 0; }
+   
 }
 
 [data-testid="stApp"] a.enma-brand {
