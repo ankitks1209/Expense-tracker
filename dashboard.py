@@ -436,13 +436,14 @@ elif net > 0:
 else:
     result_label = "Spent more than you received"
 
+#changes
 st.html(f"""
     <section class="dashboard-summary" aria-label="Selected period summary">
         <div class="dashboard-result">
             <div class="dashboard-period">{period}</div>
-            <strong>{money(net)}</strong>
-            <div>{result_label}</div>
-            <div class="dashboard-breakdown">
+            <strong class="dashboard-net">{money(net)}</strong>
+            <div class="dashboard-label">{result_label}</div>
+            <div class="dashboard-totals">
                 <dl><dt>Money received</dt><dd><strong>{money(total_in)}</strong></dd></dl>
                 <dl><dt>Money spent</dt><dd><strong>{money(total_out)}</strong></dd></dl>
                 <div class="dashboard-count">{txn_count:,} {"transaction" if txn_count == 1 else "transactions"}</div>

@@ -214,6 +214,7 @@
 
 .dashboard-summary {
     display: block;
+    width: 50%;
     padding: clamp(20px, 3vw, 36px);
     background: var(--enma-feature);
     color: var(--enma-feature-ink);
@@ -226,7 +227,7 @@
 .dashboard-label { font-size: 15px; }
 .dashboard-totals {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 220px));
+    grid-template-columns: repeat(2, minmax(0, 1fr));   /* was minmax(0, 220px) */
     gap: 16px 32px;
     margin-top: 20px;
     padding-top: 20px;
@@ -245,8 +246,8 @@
 .dashboard-swatch.spent { background: var(--enma-expense-bar); }
 .dashboard-flow-detail { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 12px; font-size: 13px; }
 .dashboard-flow-detail strong { margin-left: 4px; font-family: var(--enma-mono); font-weight: 500; }
-@media (max-width: 700px) {
-   
+@media (max-width: 900px) {
+    .dashboard-summary { width: 100%; }
 }
 
 [data-testid="stApp"] a.enma-brand {
